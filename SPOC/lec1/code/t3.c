@@ -1,4 +1,4 @@
-// os2.c -- test various features
+// Show memory size
 
 #include <u.h>
 

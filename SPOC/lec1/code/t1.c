@@ -1,4 +1,4 @@
-// os2.c -- test various features
+// Read and write
 
 #include <u.h>
 

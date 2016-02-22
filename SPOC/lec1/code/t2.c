@@ -1,4 +1,4 @@
-// os2.c -- test various features
+// Test interrupts and exceptions
 
 #include <u.h>
 
