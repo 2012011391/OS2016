@@ -98,7 +98,32 @@ root/usr/os/os0.c  39:
  
  - 回答如下问题：
    - 何处设置的中断使能？   
+   
+   > asm(STI)指令设置了中断使能
+
    - 系统何时处于中断屏蔽状态？
+   
+   > 处理时钟中断的时候以及代码运行到STI指令之前这两种情况
+
    - 如果系统处于中断屏蔽状态，如何让其中断使能？
+   
+   > STI或者RTI指令
+
    - 系统产生中断后，CPU会做哪些事情？（在没有软件帮助的情况下）
+   
+   > 根据gdb单步调试的结果，CPU依次完成如下工作：进行栈的切换；如果处于用户态，切换内存映射表；跳转到 `ivec` 设置的中断处理入口。
+
    - CPU执行RTI指令的具体完成工作是哪些？
+   
+   > ```c
+      if (user) { trap = FPRIV; break; }    // 如果用户态，则报错
+      xsp -= tsp; tsp = fsp = 0;            
+      if (!(p = tr[xsp >> 12]) && !(p = rlook(xsp))) { dprintf(2,"RTI kstack fault\n"); goto fatal; } // 切换栈帧
+      t = *(uint *)((xsp ^ p) & -8); xsp += 8;
+      if (!(p = tr[xsp >> 12]) && !(p = rlook(xsp))) { dprintf(2,"RTI kstack fault\n"); goto fatal; }
+      xcycle += (pc = *(uint *)((xsp ^ p) & -8) + tpc) - (uint)xpc; xsp += 8;    // 切换pc
+      xpc = (int *)pc;
+      if (t & USER) { ssp = xsp; xsp = usp; user = 1; tr = tru; tw = twu; }
+      if (!iena) { if (ipend) { trap = ipend & -ipend; ipend ^= trap; goto interrupt; } iena = 1; } // 打开中断使能
+      goto fixpc; // page may be invalid   // 结束中断处理
+    ```
