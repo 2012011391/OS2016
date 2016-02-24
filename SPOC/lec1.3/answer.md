@@ -94,7 +94,7 @@ root/usr/funcall.c  27:
 
    - funcall中的函数参数是如何传递的？函数返回值是如何传递的？
         - 参数从右向左依次压栈
-        - SP+4
+        - 寄存器a
 
    - 分析并说明funcall执行文件的格式和内容
         - HDR + TEXT + DATA
