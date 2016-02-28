@@ -51,9 +51,13 @@
  
 ## 3.4 linux系统调用分析
  1. 通过分析[lab1_ex0](https://github.com/chyyuu/ucore_lab/blob/master/related_info/lab1/lab1-ex0.md)了解Linux应用的系统调用编写和含义。(w2l1)
+  
   > objdump的作用是将一个文件反汇编得到其各个程序段的汇编码，以该文件为例，使用-S参数后得到代码段.text的全部反汇编内容；
+
   > nm的作用是显示特定文件的符号信息，该程序的符号信息输出包括 `_start` 的地址 `0x080482f0` ， `SYS_write` 的值 `0x04` 等等
+  
   > file的作用是显示指定文件的格式，该文件输出结果为：ELF格式32位小端序可执行文件，Intel 80386架构，动态链接等
+  
   > Linux系统调用主要是通过 `int 0x80` 实现，通过寄存器 `eax` , `ebx` , `ecx` , `edx` 传入参数来，其中 `eax` 代表系统调用号，而 `ebx` 往后均为系统调用函数的参数
  
  
