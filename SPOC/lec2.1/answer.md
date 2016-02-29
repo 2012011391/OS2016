@@ -88,8 +88,8 @@ ucore lab8的answer中共有22个系统调用，大致分为如下几类
   
 objdump的作用是将一个文件反汇编得到其各个程序段的汇编码，以该文件为例，使用-S参数后得到代码段.text的全部反汇编内容；
 
-nm的作用是显示特定文件的符号信息，该程序的符号信息输出包括 `_start` 的地址 `0x080482f0` ， `SYS_write` 的值 `0x04` 等等
-  
+nm的作用是显示特定文件的符号信息，该程序的符号信息输出包括 _start 的地址 0x080482f0 ， SYS_write 的值 0x04 等等
+
 file的作用是显示指定文件的格式，该文件输出结果为：ELF格式32位小端序可执行文件，Intel 80386架构，动态链接等
 
 Linux系统调用主要是通过 `int 0x80` 实现，通过寄存器 `eax` , `ebx` , `ecx` , `edx` 传入参数来，其中 `eax` 代表系统调用号，而 `ebx` 往后均为系统调用函数的参数
@@ -99,12 +99,21 @@ Linux系统调用主要是通过 `int 0x80` 实现，通过寄存器 `eax` , `eb
  
 
 strace可以跟踪进程执行时的系统调用和所接收的信号，加上-c参数后还可以知道每个调用所花费的时间。
-
+ 
+- 通过 Bash，调用 `execve` 通知操作系统执行程序
+- 调用 `brk(0)`，开始建立程序栈基址
+- 调用 `access`，访问一些动态链接库
+- 调用 `open`，`read` 和 `close`，读入文件
+- 通过 `arch_prctl` 设定程序运行架构
+- 使用 `mprotect` 设置内存保护属性
+- 调用 `write`，将 `Hello World` 输出
+- `exit_group` 退出程序
+- 期间有多次调用 `mmap`，进行内存虚实转化
  
 ## 3.5 ucore系统调用分析
 > 1. ucore的系统调用中参数传递代码分析。
 
-在 ucore 中，执行系统调用前，需要将系统调用的参数出存在寄存器中。eax 表示参数个数，参数依次存在 edx, ecx, ebx, edi, esi 中。
+在 ucore 中，执行系统调用前，需要将系统调用的参数出存在寄存器中。eax 表示系统调用类型，其余参数依次存在 edx, ecx, ebx, edi, esi 中。
 
 ```c
 	...
@@ -119,13 +128,22 @@ strace可以跟踪进程执行时的系统调用和所接收的信号，加上-c
 ```
 	
 	
-> 2. ucore的系统调用中返回结果的传递代码分析。
+> 2. 以getpid为例, ucore的系统调用中返回结果的传递代码分析。
 
-系统调用返回结果存在eax中。
+`syscalls` 是保存了各种系统调用的函数指针，进入 `sys_getpid`，直接返回当前进程的 pid。
+
+```c
+	sys_getpid(uint32_t arg[]) {
+	    return current->pid;
+	}
+```
+
+而各类系统调用返回结果统一存在eax中。
 
 ```c
 	tf->tf_regs.reg_eax = syscalls[num](arg);
 ```
+
 
 > 3. 以ucore lab8的answer为例，分析 ucore 应用的系统调用编写和含义。
 > 4. 以ucore lab8的answer为例，尝试修改并运行ucore OS kernel代码，使其具有类似Linux应用工具`strace`的功能，即能够显示出应用程序发出的系统调用，从而可以分析ucore应用的系统调用执行过程。
