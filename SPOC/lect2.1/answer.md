@@ -63,7 +63,6 @@
  
  1. 通过调试[lab1_ex1](https://github.com/chyyuu/ucore_lab/blob/master/related_info/lab1/lab1-ex1.md)了解Linux应用的系统调用执行过程。(w2l1)
  
-
  ```
   + 采分点：说明了strace的大致用途，说明了系统调用的具体执行过程（包括应用，CPU硬件，操作系统的执行过程）
   - 答案没有涉及上述两个要点；（0分）
@@ -81,3 +80,27 @@
 ## 3.6 请分析函数调用和系统调用的区别
  1. 请从代码编写和执行过程来说明。
    1. 说明`int`、`iret`、`call`和`ret`的指令准确功能
+
+
+## v9-cpu相关题目
+---
+
+### 提前准备
+```
+cd YOUR v9-cpu DIR
+git pull 
+cd YOUR os_course_spoc_exercise DIR
+git pull 
+```
+
+### v9-cpu系统调用实现
+  1. v9-cpu中os4.c的系统调用中参数传递代码分析。
+    > 在os4中，用户态程序通过 `write()` 这个API函数来实现输出的操作，而这个函数是通过系统调用来实现的。
+     ```c
+      asm(LL,8); asm(LBL,16); asm(LCL,24); asm(TRAP,S_write);
+     ```
+     
+    > `write` 函数将寄存器a,b,c分别设置为三个传入参数，然后触发系统调用，在 `alltraps` 函数中，做好堆栈的处理，进入中断向量 `trap` 函数，其中将这三个参数传递给 `sys_write` 这个内核函数，在内核态完成输出，最终返回用户态。
+    
+  1. v9-cpu中os4.c的系统调用中返回结果的传递代码分析。
+  1. 理解v9-cpu中os4.c的系统调用编写和含义。
