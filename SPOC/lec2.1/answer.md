@@ -144,9 +144,9 @@ Linux系统调用主要是通过 `int 0x80` 实现，通过寄存器 `eax` , `eb
 
 在os4中，用户态程序通过 `write()` 这个API函数来实现输出的操作，而这个函数是通过系统调用来实现的。
 
-     ```c
-      asm(LL,8); asm(LBL,16); asm(LCL,24); asm(TRAP,S_write);
-     ```
+```c
+  asm(LL,8); asm(LBL,16); asm(LCL,24); asm(TRAP,S_write);
+```
      
 `write` 函数将寄存器a,b,c分别设置为三个传入参数，然后触发系统调用，在 `alltraps` 函数中，做好堆栈的处理，进入中断向量 `trap` 函数，其中将这三个参数传递给 `sys_write` 这个内核函数，在内核态完成输出，最终返回用户态。
     
@@ -154,10 +154,10 @@ Linux系统调用主要是通过 `int 0x80` 实现，通过寄存器 `eax` , `eb
 
  由
  
-      ```c
-       case S_write: a = sys_write(a, b, c); break;
-      ```
-    > 可知 `sys_write`函数的返回值存放在了 `a` 这一个变量所在的位置，而这个变量在 `alltraps` 中通过倒数第二句 `POPA` 将寄存器a设置为a变量的值，即函数返回值是通过寄存器a实现的。
+ ```c
+   case S_write: a = sys_write(a, b, c); break;
+ ```
+ 可知 `sys_write`函数的返回值存放在了 `a` 这一个变量所在的位置，而这个变量在 `alltraps` 中通过倒数第二句 `POPA` 将寄存器a设置为a变量的值，即函数返回值是通过寄存器a实现的。
     
 > 理解v9-cpu中os4.c的系统调用编写和含义。
 
