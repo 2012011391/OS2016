@@ -143,6 +143,7 @@ Linux系统调用主要是通过 `int 0x80` 实现，通过寄存器 `eax` , `eb
 > v9-cpu中os4.c的系统调用中参数传递代码分析。
 
 在os4中，用户态程序通过 `write()` 这个API函数来实现输出的操作，而这个函数是通过系统调用来实现的。
+
      ```c
       asm(LL,8); asm(LBL,16); asm(LCL,24); asm(TRAP,S_write);
      ```
@@ -152,6 +153,7 @@ Linux系统调用主要是通过 `int 0x80` 实现，通过寄存器 `eax` , `eb
 > v9-cpu中os4.c的系统调用中返回结果的传递代码分析。
 
  由
+ 
       ```c
        case S_write: a = sys_write(a, b, c); break;
       ```
