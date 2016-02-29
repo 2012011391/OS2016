@@ -202,7 +202,21 @@ syscall(void) {
  
 > 4. 以ucore lab8的answer为例，尝试修改并运行ucore OS kernel代码，使其具有类似Linux应用工具`strace`的功能，即能够显示出应用程序发出的系统调用，从而可以分析ucore应用的系统调用执行过程。
 
-在 `syscall()` 中加入输出即可
+
+利用 `trap.c` 的 `trap_in_kernel()` 函数判断是否是用户态的系统调用，调用 `syscall()` 时传入此参数
+
+```c
+    case T_SYSCALL:
+        syscall(trap_in_kernel(tf));
+        break;
+```
+更改 `syscall()` 的函数原型为
+
+```c
+    void syscall(bool);
+```
+
+之后在 `syscall(bool)` 中加入输出即可
 ```c
     int num = tf->tf_regs.reg_eax;
     if (num >= 0 && num < NUM_SYSCALLS) {
@@ -213,19 +227,20 @@ syscall(void) {
             arg[3] = tf->tf_regs.reg_edi;
             arg[4] = tf->tf_regs.reg_esi;
 
-	    cprintf("SYSCALL: %d\n", num);
+	    if (!in_kernel) {
+	    	cprintf("SYSCALL: %d\n", num);
+	    }
             tf->tf_regs.reg_eax = syscalls[num](arg);
             return ;
         }
     }
 ```
 
-下面是qemu运行的输出结果片段，可以看出在用户程序输出 `sh is running` 的过程中调用了 `SYS_exec` 和 `SYS_write`
+下面是qemu运行的输出结果片段，可以看出在用户程序输出前调用了 `SYS_open`，输出 `sh is running` 的过程中调用了 `SYS_write`
 
 ``` 
 Iter 1, No.0 philosopher_sema is thinking
 kernel_execve: pid = 2, name = "sh".
-SYSCALL: 4
 SYSCALL: 100
 SYSCALL: 100
 SYSCALL: 103
