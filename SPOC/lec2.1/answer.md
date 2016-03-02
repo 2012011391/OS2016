@@ -146,7 +146,6 @@ strace可以跟踪进程执行时的系统调用和所接收的信号，加上-c
 
 
 > 3. 以ucore lab8的answer为例，分析 ucore 应用的系统调用编写和含义。
-> 4. 以ucore lab8的answer为例，尝试修改并运行ucore OS kernel代码，使其具有类似Linux应用工具`strace`的功能，即能够显示出应用程序发出的系统调用，从而可以分析ucore应用的系统调用执行过程。
  
 ```c
 syscall(int num, ...) {
@@ -201,6 +200,74 @@ syscall(void) {
 
 该函数得到系统调用号 `num = tf->tf_regs.reg_eax;`，通过计算快速跳转到相应的 `sys_` 开头的函数，最终在内核态中，完成系统调用所需要的功能。
  
+> 4. 以ucore lab8的answer为例，尝试修改并运行ucore OS kernel代码，使其具有类似Linux应用工具`strace`的功能，即能够显示出应用程序发出的系统调用，从而可以分析ucore应用的系统调用执行过程。
+
+
+利用 `trap.c` 的 `trap_in_kernel()` 函数判断是否是用户态的系统调用，调用 `syscall()` 时传入此参数
+
+```c
+    case T_SYSCALL:
+        syscall(trap_in_kernel(tf));
+        break;
+```
+更改 `syscall()` 的函数原型为
+
+```c
+    void syscall(bool);
+```
+
+之后在 `syscall(bool)` 中加入输出即可
+```c
+    int num = tf->tf_regs.reg_eax;
+    if (num >= 0 && num < NUM_SYSCALLS) {
+        if (syscalls[num] != NULL) {
+            arg[0] = tf->tf_regs.reg_edx;
+            arg[1] = tf->tf_regs.reg_ecx;
+            arg[2] = tf->tf_regs.reg_ebx;
+            arg[3] = tf->tf_regs.reg_edi;
+            arg[4] = tf->tf_regs.reg_esi;
+
+	    if (!in_kernel) {
+	    	cprintf("SYSCALL: %d\n", num);
+	    }
+            tf->tf_regs.reg_eax = syscalls[num](arg);
+            return ;
+        }
+    }
+```
+
+下面是qemu运行的输出结果片段，可以看出在用户程序输出前调用了 `SYS_open`，输出 `sh is running` 的过程中调用了 `SYS_write`
+
+``` 
+Iter 1, No.0 philosopher_sema is thinking
+kernel_execve: pid = 2, name = "sh".
+SYSCALL: 100
+SYSCALL: 100
+SYSCALL: 103
+uSYSCALL: 103
+sSYSCALL: 103
+eSYSCALL: 103
+rSYSCALL: 103
+ SYSCALL: 103
+sSYSCALL: 103
+hSYSCALL: 103
+ SYSCALL: 103
+iSYSCALL: 103
+sSYSCALL: 103
+ SYSCALL: 103
+rSYSCALL: 103
+uSYSCALL: 103
+nSYSCALL: 103
+nSYSCALL: 103
+iSYSCALL: 103
+nSYSCALL: 103
+gSYSCALL: 103
+!SYSCALL: 103
+!SYSCALL: 103
+!SYSCALL: 103
+$SYSCALL: 103
+ SYSCALL: 102
+```
  
 ## 3.6 请分析函数调用和系统调用的区别
  1. 请从代码编写和执行过程来说明。
