@@ -70,14 +70,14 @@ Challenge做法如下：
 用户态 -> 核心态:
 
 	// 触发中断前：用户态
-	ebp:0x00007bb8 eip:0x00100a47 args:0x0010e560 0x00000100 0x00007be8 0x0010006e 
-	    kern/debug/kdebug.c:305: print_stackframe+21
-	ebp:0x00007bc8 eip:0x001001f3 args:0x00000000 0x00000000 0x00000000 0x00103560 
-	    kern/init/init.c:115: lab1_switch_test+52
-	ebp:0x00007be8 eip:0x0010006e args:0x00000000 0x00000000 0x00000000 0x00007c4f 
-	    kern/init/init.c:40: kern_init+109
-	ebp:0x00007bf8 eip:0x00007d72 args:0xc031fcfa 0xc08ed88e 0x64e4d08e 0xfa7502a8 
-	    <unknow>: -- 0x00007d71 --
+	ebp:0x0010fcd8 eip:0x00100a47 args:0x00000000 0x00000000 0x00000000 0x00000000 
+	   kern/debug/kdebug.c:305: print_stackframe+21
+	ebp:0x0010fd08 eip:0x00101e56 args:0x0010fd34 0x00000000 0x00000000 0x00000000 
+	   kern/trap/trap.c:201: trap_dispatch+493
+	ebp:0x0010fd28 eip:0x00101eb2 args:0x00007b74 0x00000000 0x00010094 0x00007bb8 
+           kern/trap/trap.c:225: trap+16
+	ebp:0x00007bb8 eip:0x0010293e args:0x0010e560 0x00000100 0x00007be8 0x0010006e 
+           kern/trap/trapentry.S:24: <unknown>+0
 
 	// 触发中断后：核心态
 	ebp:0x00007bb8 eip:0x00100a47 args:0x0010e560 0x00000100 0x00007be8 0x0010006e 
