@@ -8,3 +8,48 @@
 	
 	max {CPL, RPL} ≤ DPL
 
+Challenge做法如下：
+
+- 增加用户程序 printPL.c，输出用户态的CPL
+
+```c
+#include <ulib.h>
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+
+int get_cpl() {
+	int ret;
+	asm volatile ("movl %%cs, %0"
+			: "=r" (ret));
+}
+
+int main(void) {
+	int cpl;
+	cpl = get_cpl() & 3;
+	cprintf("In user mode, CPL = %d\n", cpl);
+}
+
+```
+
+- 在 syscall.c 中添加代码输出核心态的CPL
+
+```c
+
+int get_cpl() {
+	int ret;
+	asm volatile ("movl %%cs, %0"
+			: "=r" (ret));
+}
+
+void
+syscall() {
+    static int firstinto = 1;
+    if (firstinto) {
+    	firstinto = 0;
+       cprintf("In kernel mode, cpl = %d\n", get_cpl() & 3);
+    ...
+    }
+}
+
+```
