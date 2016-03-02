@@ -54,6 +54,8 @@ syscall() {
 
 ```
 
+---
+
 > 比较不同特权级的中断切换时的堆栈变化差别；(challenge)写出一些简单的小程序（c or asm）来显示出不同特权级的的中断切换的堆栈变化情况。
 
 
@@ -61,3 +63,58 @@ syscall() {
 
 当在内核态触发中断时，ESP指针没有发生跳转，没有切换堆栈，仅仅压入EFLAGS/CS/EIP/Error Code。
 
+Challenge做法如下：
+
+利用 `lab1_switch_test()` 转换用户态和内核态，同时添加打印栈的代码，输出结果如下
+
+用户态 -> 核心态:
+
+	// 触发中断前：用户态
+	ebp:0x00007bb8 eip:0x00100a47 args:0x0010e560 0x00000100 0x00007be8 0x0010006e 
+	    kern/debug/kdebug.c:305: print_stackframe+21
+	ebp:0x00007bc8 eip:0x001001f3 args:0x00000000 0x00000000 0x00000000 0x00103560 
+	    kern/init/init.c:115: lab1_switch_test+52
+	ebp:0x00007be8 eip:0x0010006e args:0x00000000 0x00000000 0x00000000 0x00007c4f 
+	    kern/init/init.c:40: kern_init+109
+	ebp:0x00007bf8 eip:0x00007d72 args:0xc031fcfa 0xc08ed88e 0x64e4d08e 0xfa7502a8 
+	    <unknow>: -- 0x00007d71 --
+
+	// 触发中断后：核心态
+	ebp:0x00007bb8 eip:0x00100a47 args:0x0010e560 0x00000100 0x00007be8 0x0010006e 
+	    kern/debug/kdebug.c:305: print_stackframe+21
+	ebp:0x00007bc8 eip:0x0010020d args:0x00000000 0x00000000 0x00000000 0x00103560 
+	    kern/init/init.c:119: lab1_switch_test+78
+	ebp:0x00007be8 eip:0x0010006e args:0x00000000 0x00000000 0x00000000 0x00007c4f 
+	    kern/init/init.c:40: kern_init+109
+	ebp:0x00007bf8 eip:0x00007d72 args:0xc031fcfa 0xc08ed88e 0x64e4d08e 0xfa7502a8 
+	    <unknow>: -- 0x00007d71 --
+
+	
+	
+核心态 -> 核心态:
+
+	// 触发中断前
+	ebp:0x00007bb8 eip:0x00100a47 args:0x0010e560 0x00000100 0x00007be8 0x0010006e 
+	    kern/debug/kdebug.c:305: print_stackframe+21
+	ebp:0x00007bc8 eip:0x001001d9 args:0x00000000 0x00000000 0x00000000 0x00103560 
+	    kern/init/init.c:111: lab1_switch_test+26
+	ebp:0x00007be8 eip:0x0010006e args:0x00000000 0x00000000 0x00000000 0x00007c4f 
+	    kern/init/init.c:40: kern_init+109
+	ebp:0x00007bf8 eip:0x00007d72 args:0xc031fcfa 0xc08ed88e 0x64e4d08e 0xfa7502a8 
+	    <unknow>: -- 0x00007d71 --
+
+	// 触发中断后
+	ebp:0x00007b10 eip:0x00100a47 args:0x00007b48 0x00100255 0x00100210 0x00007b3c 
+	    kern/debug/kdebug.c:305: print_stackframe+21
+	ebp:0x00007b40 eip:0x00101dbe args:0x00007b6c 0x00100255 0x00100210 0x00007b6c 
+	    kern/trap/trap.c:182: trap_dispatch+341
+	ebp:0x00007b60 eip:0x00101ead args:0x00007b6c 0x00000000 0x00010094 0x00007bb8 
+	    kern/trap/trap.c:224: trap+16
+	ebp:0x00007bb8 eip:0x00102939 args:0x0010e560 0x00000100 0x00007be8 0x0010006e 
+	    kern/trap/trapentry.S:24: <unknown>+0
+	ebp:0x00007bc8 eip:0x001001ee args:0x00000000 0x00000000 0x00000000 0x00103560 
+	    kern/init/init.c:113: lab1_switch_test+47
+	ebp:0x00007be8 eip:0x0010006e args:0x00000000 0x00000000 0x00000000 0x00007c4f 
+	    kern/init/init.c:40: kern_init+109
+	ebp:0x00007bf8 eip:0x00007d72 args:0xc031fcfa 0xc08ed88e 0x64e4d08e 0xfa7502a8 
+	    <unknow>: -- 0x00007d71 --
